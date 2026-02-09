@@ -30,6 +30,9 @@ export const getMessages = async (req, res) => {
     };
 
     if (before) {
+      if (typeof before !== 'string') {
+        return res.status(400).json({ message: "Invalid query parameter" });
+      }
       query._id = { $lt: before };
     }
 

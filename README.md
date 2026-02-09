@@ -5,13 +5,28 @@ Linkify is a modern, full-stack real-time chat application built with the MERN s
 ## 🚀 Features
 
 - **Real-time Messaging**: Instant communication powered by **Socket.io**.
-- **Live Translation**: Seamlessly translate messages between languages using **Google Cloud Translate**.
+- **Voice Messaging**: Record and send voice messages with automatic **speech-to-text transcription**.
+- **Live Translation**: Seamlessly translate text and voice transcripts between languages using **Google Cloud Translate**.
 - **Secure Authentication**: Robust system using JWT (JSON Web Tokens) in HTTP-only cookies.
 - **Global Diversity**: Pre-seeded with a diverse range of 15+ multicultural user profiles.
 - **Responsive Design**: Beautiful UI built with **React**, **Tailwind CSS**, and **DaisyUI**.
 - **State Management**: Optimized performance using **Zustand**.
 - **Pagination**: Efficient message loading with cursor-based pagination.
 - **Testing**: Comprehensive test suites using **Jest** (Backend) and **Vitest** (Frontend).
+
+## 🌐 Real-time Language Translation & Voice Features
+
+Linkify breaks down language barriers with its advanced communication suite:
+
+### 🎙️ Voice Messaging with Transcription
+- **Record**: Users can record voice messages directly in the chat.
+- **Transcribe**: Audio is automatically processed by **Google Cloud Speech-to-Text** to generate a text transcript.
+- **Accessibility**: Transcripts ensure messages are accessible even in noisy environments or for users with hearing impairments.
+
+### 🗣️ Instant Translation
+- **Auto-Detect**: The system automatically detects the language of incoming text and voice transcripts.
+- **Translate**: Use the language selector to instantly translate the entire chat history into your preferred language (e.g., English, Spanish, French, etc.).
+- **Context Aware**: Translations are context-aware, ensuring accurate and meaningful communication across cultures.
 
 ## 🛠️ Tech Stack
 
@@ -28,6 +43,8 @@ Linkify is a modern, full-stack real-time chat application built with the MERN s
 - **Framework**: Express.js
 - **Database**: MongoDB (Mongoose)
 - **Real-time**: Socket.io (with JWT authentication)
+- **Audio Processing**: Google Cloud Speech-to-Text
+- **Translation**: Google Cloud Translation API
 - **Security**: bcryptjs, jsonwebtoken, cookie-parser
 - **Testing**: Jest, Supertest
 
@@ -92,6 +109,10 @@ Chat App/
    CLOUDINARY_CLOUD_NAME=your_cloud_name
    CLOUDINARY_API_KEY=your_api_key
    CLOUDINARY_API_SECRET=your_api_secret
+   
+   # For Voice Transcription (Optional)
+   GOOGLE_CLOUD_PROJECT_ID=your_project_id
+   GOOGLE_CLOUD_CREDENTIALS_PATH=path/to/credentials.json
    ```
 
    Create `.env.development` in `frontend/`:

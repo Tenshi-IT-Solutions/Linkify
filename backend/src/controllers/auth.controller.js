@@ -8,7 +8,7 @@ export const signup = async (req, res) => {
   try {
     // Input validation
     if (!fullName || !email || !password) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: "All fields are required",
         details: { fullName: !!fullName, email: !!email, password: !!password }
       });
@@ -55,20 +55,20 @@ export const signup = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in signup controller:", error);
-    
+
     // Handle specific MongoDB errors
     if (error.code === 11000) {
       return res.status(400).json({ message: "Email already exists" });
     }
-    
+
     if (error.name === 'ValidationError') {
-      return res.status(400).json({ 
-        message: "Validation error", 
+      return res.status(400).json({
+        message: "Validation error",
         details: Object.values(error.errors).map(err => err.message)
       });
     }
 
-    res.status(500).json({ 
+    res.status(500).json({
       message: "Failed to create account",
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
@@ -78,6 +78,9 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
   const { email, password } = req.body;
   try {
+    if (typeof email !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({ message: "Invalid input format" });
+    }
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -127,7 +130,7 @@ export const updateProfile = async (req, res) => {
       userId,
       { profilePic: uploadResponse.secure_url },
       { new: true }
-    );
+    ).select("-password");
 
     res.status(200).json(updatedUser);
   } catch (error) {
