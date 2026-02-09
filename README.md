@@ -66,9 +66,6 @@ Chat App/
 │   │   ├── pages/        # Application views
 │   │   └── store/        # Zustand stores
 │   └── src/store/        # Tests
-├── directives/           # Agent Standard Operating Procedures (SOPs)
-├── execution/            # Agent execution scripts
-└── Agents.md             # System instructions
 ```
 
 ## ⚡ Getting Started
