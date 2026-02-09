@@ -20,15 +20,24 @@ export const getMessages = async (req, res) => {
   try {
     const { id: userToChatId } = req.params;
     const myId = req.user._id;
+    const { limit = 50, before } = req.query;
 
-    const messages = await Message.find({
+    const query = {
       $or: [
         { senderId: myId, receiverId: userToChatId },
         { senderId: userToChatId, receiverId: myId },
       ],
-    });
+    };
 
-    res.status(200).json(messages);
+    if (before) {
+      query._id = { $lt: before };
+    }
+
+    const messages = await Message.find(query)
+      .sort({ createdAt: -1 }) // Newest first
+      .limit(parseInt(limit));
+
+    res.status(200).json(messages.reverse()); // Return oldest first for UI
   } catch (error) {
     console.log("Error in getMessages controller: ", error.message);
     res.status(500).json({ error: "Internal server error" });

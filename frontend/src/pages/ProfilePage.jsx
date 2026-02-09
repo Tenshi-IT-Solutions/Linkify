@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import { Camera, Mail, User } from "lucide-react";
+import toast from "react-hot-toast";
+
+// Default avatar as base64
+const DEFAULT_AVATAR = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS11c2VyIj48cGF0aCBkPSJNMTkgMjF2LTJhNCA0IDAgMCAwLTQtNEg5YTQgNCAwIDAgMC00IDR2MiIvPjxjaXJjbGUgY3g9IjEyIiBjeT0iNyIgcj0iNCIvPjwvc3ZnPg==";
 
 const ProfilePage = () => {
   const { authUser, isUpdatingProfile, updateProfile } = useAuthStore();
@@ -10,15 +14,38 @@ const ProfilePage = () => {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size should be less than 5MB");
+      return;
+    }
+
+    // Check file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+
     const reader = new FileReader();
 
-    reader.readAsDataURL(file);
-
     reader.onload = async () => {
-      const base64Image = reader.result;
-      setSelectedImg(base64Image);
-      await updateProfile({ profilePic: base64Image });
+      try {
+        const base64Image = reader.result;
+        setSelectedImg(base64Image);
+        await updateProfile({ profilePic: base64Image });
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        toast.error("Failed to upload image. Please try again.");
+        setSelectedImg(null);
+      }
     };
+
+    reader.onerror = () => {
+      toast.error("Error reading image file");
+      setSelectedImg(null);
+    };
+
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -31,13 +58,15 @@ const ProfilePage = () => {
           </div>
 
           {/* avatar upload section */}
-
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
               <img
-                src={selectedImg || authUser.profilePic || "/avatar.png"}
+                src={selectedImg || authUser?.profilePic || DEFAULT_AVATAR}
                 alt="Profile"
-                className="size-32 rounded-full object-cover border-4 "
+                className="size-32 rounded-full object-cover border-4 border-base-200 bg-base-200"
+                onError={(e) => {
+                  e.target.src = DEFAULT_AVATAR;
+                }}
               />
               <label
                 htmlFor="avatar-upload"
@@ -84,11 +113,11 @@ const ProfilePage = () => {
           </div>
 
           <div className="mt-6 bg-base-300 rounded-xl p-6">
-            <h2 className="text-lg font-medium  mb-4">Account Information</h2>
+            <h2 className="text-lg font-medium mb-4">Account Information</h2>
             <div className="space-y-3 text-sm">
               <div className="flex items-center justify-between py-2 border-b border-zinc-700">
                 <span>Member Since</span>
-                <span>{authUser.createdAt?.split("T")[0]}</span>
+                <span>{authUser?.createdAt?.split("T")[0]}</span>
               </div>
               <div className="flex items-center justify-between py-2">
                 <span>Account Status</span>

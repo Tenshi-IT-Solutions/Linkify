@@ -24,3 +24,14 @@ dist-ssr
 *.sw?
 
 .env
+
+# Agent System
+.tmp/
+__pycache__/
+*.pyc
+
+# Credentials
+credentials.json
+token.json
+google-cloud-credentials.json
+src/config/google-cloud-credentials.json

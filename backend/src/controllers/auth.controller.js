@@ -6,44 +6,72 @@ import cloudinary from "../lib/cloudinary.js";
 export const signup = async (req, res) => {
   const { fullName, email, password } = req.body;
   try {
+    // Input validation
     if (!fullName || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ 
+        message: "All fields are required",
+        details: { fullName: !!fullName, email: !!email, password: !!password }
+      });
     }
 
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
+
+    // Password length validation
     if (password.length < 6) {
       return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
-    const user = await User.findOne({ email });
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already exists" });
+    }
 
-    if (user) return res.status(400).json({ message: "Email already exists" });
-
+    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Create new user
     const newUser = new User({
-      fullName,
-      email,
+      fullName: fullName.trim(),
+      email: email.toLowerCase().trim(),
       password: hashedPassword,
     });
 
-    if (newUser) {
-      // generate jwt token here
-      generateToken(newUser._id, res);
-      await newUser.save();
+    // Save user and generate token
+    await newUser.save();
+    generateToken(newUser._id, res);
 
-      res.status(201).json({
-        _id: newUser._id,
-        fullName: newUser.fullName,
-        email: newUser.email,
-        profilePic: newUser.profilePic,
-      });
-    } else {
-      res.status(400).json({ message: "Invalid user data" });
-    }
+    // Return user data (excluding password)
+    res.status(201).json({
+      _id: newUser._id,
+      fullName: newUser.fullName,
+      email: newUser.email,
+      profilePic: newUser.profilePic,
+    });
   } catch (error) {
-    console.log("Error in signup controller", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error in signup controller:", error);
+    
+    // Handle specific MongoDB errors
+    if (error.code === 11000) {
+      return res.status(400).json({ message: "Email already exists" });
+    }
+    
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        message: "Validation error", 
+        details: Object.values(error.errors).map(err => err.message)
+      });
+    }
+
+    res.status(500).json({ 
+      message: "Failed to create account",
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
