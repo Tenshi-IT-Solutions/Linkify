@@ -41,27 +41,50 @@ const ChatContainer = () => {
   }, [messages]);
 
   useEffect(() => {
+    let isCancelled = false;
+
     const translateMessages = async () => {
       if (selectedLanguage === 'en') return;
+
+      // Filter messages that need translation
+      const messagesToTranslate = messages.filter(
+        message => message.text && !translations[message._id]
+      );
+
+      if (messagesToTranslate.length === 0) return;
+
       setIsTranslating(true);
 
       try {
-        for (const message of messages) {
-          if (!translations[message._id] && message.text) {
+        await Promise.all(messagesToTranslate.map(async (message) => {
+          try {
+            if (isCancelled) return;
             const result = await translateMessage(message.text, selectedLanguage);
-            setTranslation(message._id, result.translatedText);
+            if (!isCancelled) {
+              setTranslation(message._id, result.translatedText);
+            }
+          } catch (error) {
+            console.error(`Failed to translate message ${message._id}:`, error);
           }
-        }
+        }));
       } catch (error) {
-        console.error('Translation error:', error);
-        toast.error('Failed to translate messages');
+        if (!isCancelled) {
+          console.error('Translation error:', error);
+          toast.error('Failed to translate messages');
+        }
       } finally {
-        setIsTranslating(false);
+        if (!isCancelled) {
+          setIsTranslating(false);
+        }
       }
     };
 
     translateMessages();
-  }, [messages, selectedLanguage, setTranslation, translations]);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [messages, selectedLanguage, setTranslation]); // translations intentionally excluded to prevent loop
 
   if (isMessagesLoading) {
     return (
@@ -117,6 +140,14 @@ const ChatContainer = () => {
                   alt="Attachment"
                   className="sm:max-w-[200px] rounded-md mb-2"
                 />
+              )}
+              {message.audioUrl && (
+                <div className="mb-2">
+                  <audio controls src={message.audioUrl} className="w-full sm:w-[250px]" />
+                  <div className="text-xs opacity-70 mt-1 italic">
+                    Transcript:
+                  </div>
+                </div>
               )}
               {message.text && (
                 <>

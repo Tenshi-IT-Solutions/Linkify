@@ -1,19 +1,21 @@
 import { useRef, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
-import { Image, Send, X } from "lucide-react";
+import { Image, Send, X, Mic } from "lucide-react";
 import toast from "react-hot-toast";
+import AudioRecorder from "./AudioRecorder";
 
 const MessageInput = () => {
   const [text, setText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
   const [isSending, setIsSending] = useState(false);
+  const [showRecorder, setShowRecorder] = useState(false);
   const fileInputRef = useRef(null);
   const { sendMessage } = useChatStore();
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     if (!file.type.startsWith("image/")) {
       toast.error("Please select an image file");
       return;
@@ -54,6 +56,33 @@ const MessageInput = () => {
       setIsSending(false);
     }
   };
+
+  const handleSendAudio = async (audioBase64) => {
+    if (isSending) return;
+    setIsSending(true);
+    try {
+      await sendMessage({
+        audio: audioBase64,
+      });
+      setShowRecorder(false);
+    } catch (error) {
+      console.error("Failed to send audio:", error);
+      toast.error("Failed to send audio. Please try again.");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  if (showRecorder) {
+    return (
+      <div className="p-4 w-full">
+        <AudioRecorder
+          onSend={handleSendAudio}
+          onCancel={() => setShowRecorder(false)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 w-full">
@@ -104,6 +133,15 @@ const MessageInput = () => {
             disabled={isSending}
           >
             <Image size={20} />
+          </button>
+
+          <button
+            type="button"
+            className="hidden sm:flex btn btn-circle text-zinc-400 hover:text-primary"
+            onClick={() => setShowRecorder(true)}
+            disabled={isSending}
+          >
+            <Mic size={20} />
           </button>
         </div>
         <button

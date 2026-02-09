@@ -16,14 +16,17 @@ const ChatHeader = () => {
           {/* Avatar */}
           <div className="avatar">
             <div className="size-10 rounded-full relative">
-              <img 
-                src={selectedUser?.profilePic || DEFAULT_AVATAR} 
-                alt={selectedUser?.fullName} 
-                className="bg-base-200"
-                onError={(e) => {
-                  e.target.src = DEFAULT_AVATAR;
-                }}
+              <img
+                src={selectedUser?.profilePic || DEFAULT_AVATAR}
+                alt={selectedUser?.fullName}
+                className="size-10 object-cover rounded-full"
               />
+              {onlineUsers.includes(selectedUser?._id) && (
+                <span
+                  className="absolute bottom-0 right-0 size-3 bg-green-500 
+                  rounded-full ring-2 ring-zinc-900"
+                />
+              )}
             </div>
           </div>
 

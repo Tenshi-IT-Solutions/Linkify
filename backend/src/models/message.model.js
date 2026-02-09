@@ -7,21 +7,25 @@ const messageSchema = new mongoose.Schema({
         required: true
     },
 
-    receiverId: {   
+    receiverId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true
     },
 
-    text:{
+    text: {
         type: String
     },
 
     image: {
         type: String
+    },
+
+    audioUrl: {
+        type: String
     }
 },
-{timestamps: true}
+    { timestamps: true }
 );
 
 const Message = mongoose.model("message", messageSchema);

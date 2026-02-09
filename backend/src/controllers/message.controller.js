@@ -46,7 +46,7 @@ export const getMessages = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
-    const { text, image } = req.body;
+    const { text, image, audio } = req.body;
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
 
@@ -57,11 +57,31 @@ export const sendMessage = async (req, res) => {
       imageUrl = uploadResponse.secure_url;
     }
 
+    let audioUrl;
+    let transcribedText = "";
+
+    if (audio) {
+      // Upload audio to Cloudinary (resource_type: "video" covers audio)
+      const uploadResponse = await cloudinary.uploader.upload(audio, {
+        resource_type: "video",
+      });
+      audioUrl = uploadResponse.secure_url;
+
+      // Transcribe audio using Google Cloud Speech-to-Text
+      // We import dynamically to avoid circular dependencies or load issues if not used
+      const { transcribeAudio } = await import("../lib/googleSpeech.js");
+      transcribedText = await transcribeAudio(audio);
+    }
+
+    // Final text is either the direct text or the transcribed text
+    const finalText = text || transcribedText;
+
     const newMessage = new Message({
       senderId,
       receiverId,
-      text,
+      text: finalText,
       image: imageUrl,
+      audioUrl,
     });
 
     await newMessage.save();
